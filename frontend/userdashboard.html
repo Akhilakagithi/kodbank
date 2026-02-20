@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodbank - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div class="card dashboard">
+    <h1>User Dashboard</h1>
+    <p class="subtitle">Welcome back to Kodbank</p>
+
+    <div id="msg" class="msg" style="display: none;"></div>
+
+    <div class="form-group" style="text-align: center;">
+      <button type="button" class="btn btn-primary btn-balance" id="checkBalanceBtn">Check Balance</button>
+    </div>
+
+    <div id="balanceContainer" class="balance-container" style="display: none;">
+      <div class="party-bg" id="partyBg"></div>
+      <p class="balance-label">Your balance is:</p>
+      <p class="balance-value" id="balanceValue">—</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 1rem;">
+      <button type="button" class="btn btn-logout" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const checkBtn = document.getElementById('checkBalanceBtn');
+    const balanceContainer = document.getElementById('balanceContainer');
+    const balanceValue = document.getElementById('balanceValue');
+    const msgEl = document.getElementById('msg');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function showMsg(text, type) {
+      msgEl.textContent = text;
+      msgEl.className = 'msg msg-' + type;
+      msgEl.style.display = 'block';
+    }
+
+    function firePartyPopper() {
+      const count = 200;
+      const defaults = { origin: { y: 0.7 } };
+
+      function fire(particleRatio, opts) {
+        confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
+      }
+
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
+
+    checkBtn.addEventListener('click', async () => {
+      checkBtn.disabled = true;
+      msgEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/user/balance', { credentials: 'include' });
+        const json = await res.json();
+
+        if (json.success) {
+          balanceContainer.style.display = 'block';
+          balanceValue.textContent = '₹' + json.balance.toLocaleString('en-IN');
+          firePartyPopper();
+        } else {
+          showMsg(json.message || 'Failed to fetch balance', 'error');
+          if (res.status === 401) {
+            setTimeout(() => window.location.href = '/login.html', 1500);
+          }
+        }
+      } catch (err) {
+        showMsg('Network error. Please try again.', 'error');
+      } finally {
+        checkBtn.disabled = false;
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login.html';
+    });
+  </script>
+</body>
+</html>

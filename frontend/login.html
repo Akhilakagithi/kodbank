@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodbank - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="card">
+    <h1>Kodbank</h1>
+    <p class="subtitle">Sign in to your account</p>
+
+    <div id="msg" class="msg" style="display: none;"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submitBtn">Login</button>
+    </form>
+
+    <p class="link">Don't have an account? <a href="register.html">Register</a></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const msgEl = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showMsg(text, type) {
+      msgEl.textContent = text;
+      msgEl.className = 'msg msg-' + type;
+      msgEl.style.display = 'block';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      msgEl.style.display = 'none';
+
+      const data = {
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value
+      };
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(data)
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          showMsg(json.message, 'success');
+          setTimeout(() => {
+            window.location.href = json.redirect || '/userdashboard.html';
+          }, 800);
+        } else {
+          showMsg(json.message || 'Login failed', 'error');
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        showMsg('Network error. Please try again.', 'error');
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
