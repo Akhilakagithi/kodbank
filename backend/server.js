@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 
 const app = express();
+
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({ origin: true, credentials: true }));
@@ -20,8 +21,8 @@ app.use('/api/user', userRoutes);
 
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'register.html'));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'login.html'));
 });
 
 app.listen(PORT, () => {
